@@ -7,52 +7,42 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import top.hendrixshen.magiclib.api.compat.minecraft.world.entity.EntityCompat;
 
+/**
+ * 26.3 里 {@code Entity#hurt} 变成 final，真正的逻辑在 {@code hurtServer(ServerLevel, DamageSource, float)}；
+ * 同时 {@code ArmorItem}/{@code TieredItem}/{@code Tiers} 已被物品组件体系取代，
+ * 因此“是不是钻石装备”改由 {@link ItemUtil#upGradeToNetheriteLike} 的映射表判定（等价且更稳）。
+ */
 @Mixin(ItemEntity.class)
 public abstract class MixinItemEntity extends Entity {
-    private MixinItemEntity(EntityType<?> type, Level world) {
-        super(type, world);
+    private MixinItemEntity(EntityType<?> type, Level level) {
+        super(type, level);
     }
 
     @Shadow
     public abstract ItemStack getItem();
 
     @Inject(
-            method = "hurt",
+            method = "hurtServer",
             at = @At(
                     value = "INVOKE",
-                    //#if MC > 11605
-                    //$$ target = "Lnet/minecraft/world/entity/item/ItemEntity;discard()V"
-                    //#else
-                    target = "Lnet/minecraft/world/entity/item/ItemEntity;remove()V"
-                    //#endif
+                    target = "Lnet/minecraft/world/entity/item/ItemEntity;discard()V"
             )
     )
-    private void checkDiamondEquip(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        EntityCompat entityCompat = EntityCompat.of(this);
-
-        if (!PluslsCarpetAdditionSettings.renewableNetheriteEquip || entityCompat.getLevel().isClientSide()) {
+    private void checkDiamondEquip(ServerLevel level, DamageSource source, float amount,
+                                   CallbackInfoReturnable<Boolean> cir) {
+        if (!PluslsCarpetAdditionSettings.renewableNetheriteEquip) {
             return;
         }
 
-        ServerLevel serverLevel = (ServerLevel) entityCompat.getLevel();
-
-        if (
-                //#if MC > 11903
-                //$$ source != serverLevel.damageSources().lava()
-                //#else
-                source != DamageSource.LAVA
-                //#endif
-                        && serverLevel.dimension() != Level.NETHER
-        ) {
+        if (source != level.damageSources().lava() && level.dimension() != Level.NETHER) {
             return;
         }
 
@@ -62,15 +52,10 @@ public abstract class MixinItemEntity extends Entity {
             return;
         }
 
-        Item item = stack.getItem();
+        ItemStack newItemStack = ItemUtil.upGradeToNetheriteLike(stack);
 
-        if ((item instanceof ArmorItem && ((ArmorItem) item).getMaterial() == ArmorMaterials.DIAMOND) ||
-                item instanceof TieredItem && ((TieredItem) item).getTier() == Tiers.DIAMOND) {
-            ItemStack newItemStack = ItemUtil.upGradeToNetheriteLike(stack);
-
-            if (newItemStack != null) {
-                serverLevel.addFreshEntity(new ItemEntity(serverLevel, this.getX(), this.getY(), this.getZ(), newItemStack));
-            }
+        if (newItemStack != null) {
+            level.addFreshEntity(new ItemEntity(level, this.getX(), this.getY(), this.getZ(), newItemStack));
         }
     }
 }

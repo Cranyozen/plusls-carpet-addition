@@ -53,7 +53,7 @@ public class Grow {
                 level.setBlockAndUpdate(upPos, Blocks.SUGAR_CANE.defaultBlockState());
                 level.setBlock(sugarCanePos, blockState.setValue(SugarCaneBlock.AGE, 0), 4);
             } else {
-                age = Math.min(15, age + level.random.nextInt(16));
+                age = Math.min(15, age + level.getRandom().nextInt(16));
                 level.setBlock(sugarCanePos, blockState.setValue(SugarCaneBlock.AGE, age), 4);
             }
             itemStack.shrink(1);

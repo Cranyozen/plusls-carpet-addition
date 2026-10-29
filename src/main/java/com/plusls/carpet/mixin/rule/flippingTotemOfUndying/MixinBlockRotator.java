@@ -46,17 +46,9 @@ public class MixinBlockRotator {
                 return;
             }
 
-            //#if MC > 11502
             CarpetSettings.impendingFillSkipUpdates.set(true);
-            //#else
-            //$$ CarpetSettings.impendingFillSkipUpdates = true;
-            //#endif
-            boolean ret = BlockRotator.flip_block(state, level, player, hand, hit);
-            //#if MC > 11502
+            boolean ret = BlockRotator.flipBlock(state, level, player, hand, hit);
             CarpetSettings.impendingFillSkipUpdates.set(false);
-            //#else
-            //$$ CarpetSettings.impendingFillSkipUpdates = false;
-            //#endif
 
             if (ret) {
                 FlipCooldown.setCoolDown(player, level.getGameTime());

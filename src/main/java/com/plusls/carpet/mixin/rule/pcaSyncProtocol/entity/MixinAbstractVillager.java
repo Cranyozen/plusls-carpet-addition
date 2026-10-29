@@ -3,55 +3,58 @@ package com.plusls.carpet.mixin.rule.pcaSyncProtocol.entity;
 import com.plusls.carpet.PluslsCarpetAdditionReference;
 import com.plusls.carpet.PluslsCarpetAdditionSettings;
 import com.plusls.carpet.impl.network.PcaSyncProtocol;
-import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
+import com.plusls.carpet.mixin.accessor.AccessorAbstractVillager;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.entity.AgableMob;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.npc.villager.AbstractVillager;
+import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Intrinsic;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import top.hendrixshen.magiclib.api.compat.minecraft.world.entity.EntityCompat;
 
-@Mixin(AbstractVillager.class)
-public abstract class MixinAbstractVillager extends AgableMob implements ContainerListener {
-    @Final
-    @Shadow
-    private SimpleContainer inventory;
+/**
+ * 26.3 移除了 {@code ContainerListener} / {@code SimpleContainer.addListener}，
+ * 因此改为在 tick 末尾比对容器内容指纹，变化时才推送同步包。
+ * 注意：{@code AbstractVillager} 自己不再声明 {@code tick}，这里锚在声明了 tick 的 {@link Villager} 上。
+ */
+@Mixin(Villager.class)
+public abstract class MixinAbstractVillager extends AbstractVillager {
+    @Unique
+    private int pca$lastInventoryHash;
 
-    protected MixinAbstractVillager(EntityType<? extends AgableMob> entityType, Level world) {
-        super(entityType, world);
+    protected MixinAbstractVillager(EntityType<? extends AbstractVillager> entityType, Level level) {
+        super(entityType, level);
     }
 
-    @Inject(method = "<init>", at = @At(value = "RETURN"))
-    private void addInventoryListener(EntityType<? extends AbstractVillager> entityType, Level world, CallbackInfo info) {
-        if (EntityCompat.of(this).getLevel().isClientSide()) {
+    @Inject(
+            method = "tick",
+            at = @At(value = "RETURN")
+    )
+    private void pca$checkInventoryChanged(CallbackInfo ci) {
+        if (!PluslsCarpetAdditionSettings.pcaSyncProtocol || this.level().isClientSide()) {
             return;
         }
 
-        this.inventory.addListener(this);
-    }
+        SimpleContainer inventory = ((AccessorAbstractVillager) this).pca$getInventory();
+        int hash = 1;
 
-    @Override
-    @Intrinsic
-    public void containerChanged(Container container) {
-    }
+        for (int slot = 0; slot < inventory.getContainerSize(); ++slot) {
+            ItemStack stack = inventory.getItem(slot);
+            hash = 31 * hash + (stack.isEmpty() ? 0
+                    : stack.getItem().hashCode() * 31 + stack.getCount() * 17
+                    + stack.getComponents().hashCode());
+        }
 
-    @SuppressWarnings({"MixinAnnotationTarget", "UnresolvedMixinReference", "target"})
-    @Inject(
-            method = {"containerChanged(Lnet/minecraft/world/Container;)V", "method_5453"},
-            at = @At("HEAD"),
-            remap = false
-    )
-    public void postContainerChanged(Container inventory, CallbackInfo ci) {
-        if (PluslsCarpetAdditionSettings.pcaSyncProtocol && PcaSyncProtocol.syncEntityToClient(this)) {
-            PluslsCarpetAdditionReference.getLogger().debug("update villager inventory: onInventoryChanged.");
+        if (hash != this.pca$lastInventoryHash) {
+            this.pca$lastInventoryHash = hash;
+
+            if (PcaSyncProtocol.syncEntityToClient(this)) {
+                PluslsCarpetAdditionReference.getLogger().debug("update villager inventory: onInventoryChanged.");
+            }
         }
     }
 }

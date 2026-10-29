@@ -4,12 +4,7 @@ package com.plusls.carpet.util.dispenser;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
 import net.minecraft.world.item.ItemStack;
 
-//#if MC > 12001
-//$$ import net.minecraft.core.dispenser.BlockSource;
-//#else
-import net.minecraft.core.BlockSource;
-//#endif
-
+import net.minecraft.core.dispenser.BlockSource;
 public class MyDispenserBehavior implements DispenseItemBehavior {
 
     private final DispenseItemBehavior oldDispenserBehavior;

@@ -7,12 +7,8 @@ import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-//#if MC > 12004
-//$$ import net.minecraft.core.HolderLookup;
-//#endif
-
+import net.minecraft.core.HolderLookup;
 public class ItemUtil {
-    //#if MC > 11502
     @Nullable
     public static ItemStack upGradeToNetheriteLike(@NotNull ItemStack stack) {
         Item newItem;
@@ -45,19 +41,7 @@ public class ItemUtil {
 
         ItemStack ret = new ItemStack(newItem);
 
-        //#if MC > 12004
-        //$$ ret.applyComponents(stack.getComponents());
-        //$$ ret.setDamageValue(ret.getMaxDamage() - 1);
-        //#else
-        CompoundTag compoundTag = stack.getTag();
-
-        if (compoundTag != null) {
-            ret.setTag(compoundTag.copy());
-            ret.setDamageValue(ret.getMaxDamage() - 1);
-        }
-        //#endif
-
+        ret.applyComponents(stack.getComponents());        ret.setDamageValue(ret.getMaxDamage() - 1);
         return ret;
     }
-    //#endif
 }

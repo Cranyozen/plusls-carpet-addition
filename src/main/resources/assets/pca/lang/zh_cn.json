@@ -1,4 +1,5 @@
 {
+  "pca.message.gravestone.position": "你的墓碑生成于 %s (%s, %s, %s)",
   "pca.message.pickup": "物品被 %s 在 [%.2f, %.2f, %.2f] 捡起，速度：[%.2f, %.2f, %.2f]",
 
   "pca.category.creative": "创造",
@@ -34,6 +35,14 @@
   "pca.rule.forceRestock.desc": "使用光灵箭射村民来强制补货。",
   "pca.rule.gravestone.name": "墓碑",
   "pca.rule.gravestone.desc": "玩家死亡后会在死亡附近的位置生成墓碑，其中将保留玩家身上的物品以及一半的经验。",
+  "pca.rule.gravestoneProtectionCount.name": "墓碑保护次数",
+  "pca.rule.gravestoneProtectionCount.desc": "墓碑能扛住几次爆炸/活塞破坏（0 = 不保护，保护耗尽后墓碑才会消失并掉出里面的物品与经验）。",
+  "pca.rule.gravestoneNotifyPosition.name": "墓碑位置提醒",
+  "pca.rule.gravestoneNotifyPosition.desc": "生成墓碑时在聊天栏告诉死亡玩家墓碑所在的坐标。",
+  "pca.rule.gravestoneFluidGraceSeconds.name": "墓碑流体宽限（秒）",
+  "pca.rule.gravestoneFluidGraceSeconds.desc": "墓碑被水或岩浆泡住后经过这么多秒才会被冲毁；0 表示永不因流体消失。",
+  "pca.rule.gravestoneFluidGraceReset.name": "流体离开后重新计时",
+  "pca.rule.gravestoneFluidGraceReset.desc": "开启后水流/岩浆离开墓碑时倒计时清零；关闭则冻结已计时间。",
   "pca.rule.pcaDebug.name": "PCA调试模式",
   "pca.rule.pcaDebug.desc": "打印更多调试信息",
   "pca.rule.pcaSyncPlayerEntity.name": "PCA 同步协议可同步玩家数据",
@@ -76,4 +85,5 @@
   "pca.rule.xaeroWorldName.name": "Xaero 小地图世界名",
   "pca.rule.xaeroWorldName.desc": "设置 Xaero 世界名来同步世界 ID,\"#none\" 表示不同步。"
 }
+
 

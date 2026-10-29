@@ -28,18 +28,10 @@ public abstract class MixinInventory implements Container, Nameable {
             method = "hasRemainingSpaceForItem",
             at = @At(
                     value = "INVOKE",
-                    //#if MC > 12004
-                    //$$ target = "Lnet/minecraft/world/entity/player/Inventory;getMaxStackSize(Lnet/minecraft/world/item/ItemStack;)I"
-                    //#else
-                    target = "Lnet/minecraft/world/item/ItemStack;getMaxStackSize()I"
-                    //#endif
-            )
+                    target = "Lnet/minecraft/world/entity/player/Inventory;getMaxStackSize(Lnet/minecraft/world/item/ItemStack;)I"            )
     )
     private int canStackAddMoreGetMaxCount(
-            //#if MC > 12004
-            //$$ Inventory instance,
-            //#endif
-            ItemStack itemStack
+            Inventory instance,            ItemStack itemStack
     ) {
         return ShulkerBoxItemUtil.getMaxCount(itemStack);
     }
@@ -48,30 +40,17 @@ public abstract class MixinInventory implements Container, Nameable {
             method = "addResource(ILnet/minecraft/world/item/ItemStack;)I",
             at = @At(
                     value = "INVOKE",
-                    //#if MC > 12004
-                    //$$ target = "Lnet/minecraft/world/entity/player/Inventory;getMaxStackSize(Lnet/minecraft/world/item/ItemStack;)I"
-                    //#else
-                    target = "Lnet/minecraft/world/item/ItemStack;getMaxStackSize()I"
-                    //#endif
-            )
+                    target = "Lnet/minecraft/world/entity/player/Inventory;getMaxStackSize(Lnet/minecraft/world/item/ItemStack;)I"            )
     )
     private int addStackGetMaxCount(
-            //#if MC > 12004
-            //$$ Inventory instance,
-            //#endif
-            ItemStack itemStack
+            Inventory instance,            ItemStack itemStack
     ) {
         return ShulkerBoxItemUtil.getMaxCount(itemStack);
     }
 
     // 避免死循环
     @Redirect(
-            //#if MC > 11605
-            //$$ method = "placeItemBackInInventory(Lnet/minecraft/world/item/ItemStack;Z)V",
-            //#else
-            method = "placeItemBackInInventory",
-            //#endif
-            at = @At(
+            method = "placeItemBackInInventory(Lnet/minecraft/world/item/ItemStack;ZLnet/minecraft/util/Prediction;)V",            at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/item/ItemStack;getMaxStackSize()I",
                     ordinal = 0

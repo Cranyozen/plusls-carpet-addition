@@ -1,21 +1,21 @@
 package com.plusls.carpet.util.rule.sleepingDuringTheDay;
 
-//#if MC > 11502
 import com.plusls.carpet.PluslsCarpetAdditionSettings;
 import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
-import net.minecraft.world.InteractionResult;
-//#endif
 
+/**
+ * 26.3 的 Fabric 事件由 {@code ALLOW_SLEEP_TIME} 改成了 {@code ALLOW_SLEEPING}
+ * （返回 {@code BedSleepingProblem} 表示拒绝，返回 {@code null} 表示放行）。
+ */
 public class SleepUtil {
-    //#if MC > 11502
     public static void init() {
-        EntitySleepEvents.ALLOW_SLEEP_TIME.register((player, sleepingPos, vanillaResult) -> {
+        EntitySleepEvents.ALLOW_SLEEPING.register((player, sleepingPos) -> {
             if (PluslsCarpetAdditionSettings.sleepingDuringTheDay) {
-                return InteractionResult.SUCCESS;
-            } else {
-                return InteractionResult.PASS;
+                // 允许白天睡觉；真正的“跳到夜晚”由 MixinServerClockManager 处理
+                return null;
             }
+
+            return null;
         });
     }
-    //#endif
 }

@@ -1,102 +1,30 @@
 package com.plusls.carpet.mixin.rule.avoidAnvilTooExpensive;
 
 import com.plusls.carpet.PluslsCarpetAdditionSettings;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
-import net.minecraft.world.item.ItemStack;
-import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.Slice;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
-//#if MC > 12004
-//$$ import net.minecraft.core.component.DataComponents;
-//#endif
-
-//#if MC > 11502
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ItemCombinerMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.MenuType;
-import org.jetbrains.annotations.Nullable;
-//#else
-//$$ import net.minecraft.world.Container;
-//$$ import org.spongepowered.asm.mixin.Final;
-//#endif
-
+/**
+ * 26.3 的“过于昂贵”判定从 {@code Abilities.instabuild} 改成了
+ * {@code cost >= 40 && !player.hasInfiniteMaterials()}，命中后把结果槽置空。
+ * 这里把该判定（createResult 里的第 2 个调用，第 1 个属于附魔书逻辑）伪造为 true，
+ * 结果槽保持有物品，即可继续取出。
+ */
 @Mixin(AnvilMenu.class)
-public abstract class MixinAnvilMenu
-        //#if MC > 11502
-        extends ItemCombinerMenu
-        //#endif
-{
-    private MixinAnvilMenu(
-            //#if MC > 11502
-            @Nullable MenuType<?> type,
-            int containerId,
-            Inventory playerInventory,
-            ContainerLevelAccess access
-            //#endif
-    ) {
-        super(
-                //#if MC > 11502
-                type,
-                containerId,
-                playerInventory,
-                access
-                //#endif
-        );
-    }
-
-    @Shadow
-    private String itemName;
-
-    //#if MC < 11600
-    //$$ @Shadow
-    //$$ @Final
-    //$$ private Container repairSlots;
-    //#endif
-
-    @ModifyVariable(
+public class MixinAnvilMenu {
+    @Redirect(
             method = "createResult",
-            slice = @Slice(
-                    from = @At(
-                            value = "INVOKE",
-                            target = "Lnet/minecraft/world/inventory/DataSlot;get()I",
-                            ordinal = 1
-                    )
-            ),
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z",
-                    ordinal = 0
-            ),
-            ordinal = 1
+                    target = "Lnet/minecraft/world/entity/player/Player;hasInfiniteMaterials()Z",
+                    ordinal = 1
+            )
     )
-    private ItemStack setItemStack(ItemStack itemStack) {
-        //#if MC > 11502
-        ItemStack itemStackA = this.inputSlots.getItem(0);
-        ItemStack itemStackB = this.inputSlots.getItem(1);
-        //#else
-        //$$ ItemStack itemStackA = this.repairSlots.getItem(0);
-        //$$ ItemStack itemStackB = this.repairSlots.getItem(1);
-        //#endif
-
-        if (PluslsCarpetAdditionSettings.avoidAnvilTooExpensive && itemStack.isEmpty() && !itemStackA.isEmpty() &&
-                (!itemStackB.isEmpty() ||
-                        (StringUtils.isBlank(this.itemName) &&
-                                //#if MC > 12004
-                                //$$ itemStackA.has(DataComponents.CUSTOM_NAME)
-                                //#else
-                                itemStackA.hasCustomHoverName()
-                                //#endif
-                        ) ||
-                        (!StringUtils.isBlank(this.itemName) && !this.itemName.equals(itemStackA.getHoverName().getString())))
-        ) {
-            return itemStackA.copy();
-        } else {
-            return itemStack;
-        }
+    private boolean pca$notTooExpensive(@NotNull Player player) {
+        return player.hasInfiniteMaterials() || PluslsCarpetAdditionSettings.avoidAnvilTooExpensive;
     }
 }

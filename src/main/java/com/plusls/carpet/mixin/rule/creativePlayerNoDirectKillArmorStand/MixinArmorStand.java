@@ -18,7 +18,7 @@ public abstract class MixinArmorStand extends LivingEntity {
     }
 
     @Redirect(
-            method = "hurt",
+            method = "hurtServer",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/damagesource/DamageSource;isCreativePlayer()Z",

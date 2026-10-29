@@ -3,7 +3,6 @@ package com.plusls.carpet;
 import com.mojang.brigadier.CommandDispatcher;
 import com.plusls.carpet.impl.network.PcaSyncProtocol;
 import com.plusls.carpet.util.rule.flippingTotemOfUndying.FlipCooldown;
-import lombok.Getter;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,17 +12,23 @@ import top.hendrixshen.magiclib.carpet.api.CarpetExtensionCompatApi;
 import top.hendrixshen.magiclib.carpet.impl.WrappedSettingManager;
 
 public class PluslsCarpetAdditionExtension implements CarpetExtensionCompatApi {
-    @Getter
-    private static final PluslsCarpetAdditionSettingManager settingsManager = new PluslsCarpetAdditionSettingManager(
+    private static final PluslsCarpetAdditionSettingManager SETTINGS_MANAGER = new PluslsCarpetAdditionSettingManager(
             PluslsCarpetAdditionReference.getModVersion(),
             PluslsCarpetAdditionReference.getModIdentifier(),
             PluslsCarpetAdditionReference.getModName());
-    @Getter
     private static MinecraftServer server;
+
+    public static PluslsCarpetAdditionSettingManager getSettingsManager() {
+        return SETTINGS_MANAGER;
+    }
+
+    public static MinecraftServer getServer() {
+        return PluslsCarpetAdditionExtension.server;
+    }
 
     @Override
     public WrappedSettingManager getSettingsManagerCompat() {
-        return PluslsCarpetAdditionExtension.settingsManager;
+        return SETTINGS_MANAGER;
     }
 
     @Override
@@ -33,7 +38,6 @@ public class PluslsCarpetAdditionExtension implements CarpetExtensionCompatApi {
     @Override
     public void onGameStarted() {
         if (PluslsCarpetAdditionSettings.pcaDebug) {
-            PluslsCarpetAdditionReference.getLogger().getName();
             Configurator.setLevel(PluslsCarpetAdditionReference.getModIdentifier(), Level.DEBUG);
         }
     }

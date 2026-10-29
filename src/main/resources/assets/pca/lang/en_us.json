@@ -1,4 +1,5 @@
 {
+  "pca.message.gravestone.position": "Your gravestone was placed at %s (%s, %s, %s)",
   "pca.message.pickup": "Item pickup by %s at [%.2f, %.2f, %.2f], velocity: [%.2f, %.2f, %.2f]",
 
   "pca.category.creative": "Creative",
@@ -34,6 +35,14 @@
   "pca.rule.forceRestock.desc": "Use spectral arrow to shoot villager to force restock.",
   "pca.rule.gravestone.name": "gravestone",
   "pca.rule.gravestone.desc": "place gravestone after player dead.",
+  "pca.rule.gravestoneProtectionCount.name": "gravestone protection count",
+  "pca.rule.gravestoneProtectionCount.desc": "How many explosion/piston hits a gravestone survives (0 = no protection; once exhausted the gravestone breaks and drops its loot).",
+  "pca.rule.gravestoneNotifyPosition.name": "gravestone position notice",
+  "pca.rule.gravestoneNotifyPosition.desc": "Send the gravestone coordinates to the dead player in chat when a gravestone is placed.",
+  "pca.rule.gravestoneFluidGraceSeconds.name": "gravestone fluid grace (seconds)",
+  "pca.rule.gravestoneFluidGraceSeconds.desc": "How many seconds a gravestone survives while submerged in water or lava; 0 = never destroyed by fluids.",
+  "pca.rule.gravestoneFluidGraceReset.name": "reset fluid timer",
+  "pca.rule.gravestoneFluidGraceReset.desc": "When on, the countdown resets once water/lava leaves the gravestone; when off it is frozen.",
   "pca.rule.pcaDebug.name": "pcaDebug",
   "pca.rule.pcaDebug.desc": "pcaDebug mode.",
   "pca.rule.pcaSyncPlayerEntity.name": "pcaSyncPlayerEntity",

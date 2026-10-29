@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "id": "${mod_id}",
-  "version": "${mod_version}",
-  "icon": "assets/${mod_id}/icon.png",
-  "name": "${mod_name}",
-  "description": "${mod_description}",
+  "id": "pca",
+  "version": "${version}",
+  "icon": "assets/pca/icon.png",
+  "name": "Plusls Carpet Addition",
+  "description": "This is a Carpet extension mod, a collection of carpet mod style useful tools and interesting features.",
   "authors": [
     {
       "name": "plusls",
@@ -14,9 +14,9 @@
     }
   ],
   "contact": {
-    "homepage": "${mod_homepage}",
-    "issues": "${mod_sources}/issues",
-    "sources": "${mod_sources}"
+    "homepage": "https://blog.plugls.com",
+    "issues": "https://github.com/plusls/plusls-carpet-addition/issues",
+    "sources": "https://github.com/plusls/plusls-carpet-addition"
   },
   "license": "CC0-1.0",
   "environment": "*",
@@ -29,19 +29,21 @@
     ]
   },
   "mixins": [
-    "${mod_id}.mixins.json"
+    "pca.mixins.json"
   ],
-  "accessWidener": "${mod_id}.accesswidener",
+  "accessWidener": "pca.accesswidener",
   "depends": {
     "carpet": "*",
-    "fabric": "*",
-    "magiclib": ">=${magiclib_dependency}",
-    "minecraft": "${minecraft_dependency}"
+    "fabric-api": "*",
+    "magiclib": ">=0.8.882",
+    "minecraft": "${minecraft_dependency}",
+    "java": ">=25"
   },
   "custom": {
-    "modmenu:parent": "${mod_id}",
+    "modmenu:parent": "pca",
     "modmenu": {
-      "parent": "${mod_id}"
+      "parent": "pca"
     }
   }
 }
+

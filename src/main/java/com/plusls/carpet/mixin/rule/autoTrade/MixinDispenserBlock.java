@@ -6,7 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.npc.villager.AbstractVillager;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.MerchantOffer;
@@ -28,17 +28,8 @@ import top.hendrixshen.magiclib.api.compat.minecraft.world.level.state.BlockStat
 
 import java.util.List;
 
-//#if MC > 12001
-//$$ import net.minecraft.core.dispenser.BlockSource;
-//#else
-import net.minecraft.core.BlockSourceImpl;
-//#endif
-
-//#if MC > 11502
+import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.server.level.ServerLevel;
-//#else
-//$$ import net.minecraft.world.level.Level;
-//#endif
 
 @Mixin(DispenserBlock.class)
 public class MixinDispenserBlock {
@@ -88,15 +79,8 @@ public class MixinDispenserBlock {
 
     @Inject(method = "dispenseFrom", at = @At(value = "HEAD"), cancellable = true)
     private void autoTrade(
-            //#if MC > 11502
             ServerLevel level,
-            //#if MC > 12001
-            //$$ BlockState blockState,
-            //#endif
-            //#else
-            //$$ Level level,
-            //#endif
-            BlockPos blockPos,
+            BlockState blockState,            BlockPos blockPos,
             CallbackInfo ci
     ) {
         if (!PluslsCarpetAdditionSettings.autoTrade) {
@@ -147,12 +131,7 @@ public class MixinDispenserBlock {
             return;
         }
 
-        //#if MC > 12001
-        //$$ BlockSource blockPointer = new BlockSource(level, blockPos, blockState, (DispenserBlockEntity) blockEntity);
-        //#else
-        BlockSourceImpl blockPointer = new BlockSourceImpl(level, blockPos);
-        //#endif
-        DispenserBlockEntity dispenserBlockEntity = (DispenserBlockEntity) blockEntity;
+        BlockSource blockPointer = new BlockSource(level, blockPos, blockState, (DispenserBlockEntity) blockEntity);        DispenserBlockEntity dispenserBlockEntity = (DispenserBlockEntity) blockEntity;
         boolean success = false;
 
         while (!offer.isOutOfStock()) {

@@ -85,6 +85,34 @@ public class PluslsCarpetAdditionSettings {
 
     @Rule(
             categories = {
+                    FEATURE
+            }
+    )
+    public static int gravestoneProtectionCount = 3;
+
+    @Rule(
+            categories = {
+                    FEATURE
+            }
+    )
+    public static boolean gravestoneNotifyPosition = true;
+
+    @Rule(
+            categories = {
+                    FEATURE
+            }
+    )
+    public static int gravestoneFluidGraceSeconds = 300;
+
+    @Rule(
+            categories = {
+                    FEATURE
+            }
+    )
+    public static boolean gravestoneFluidGraceReset = false;
+
+    @Rule(
+            categories = {
                     DEBUG
             }
     )

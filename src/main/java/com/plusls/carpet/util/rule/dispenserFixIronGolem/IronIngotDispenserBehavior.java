@@ -6,7 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.animal.golem.IronGolem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.DispenserBlock;
@@ -14,12 +14,7 @@ import net.minecraft.world.phys.AABB;
 
 import java.util.List;
 
-//#if MC > 12001
-//$$ import net.minecraft.core.dispenser.BlockSource;
-//#else
-import net.minecraft.core.BlockSource;
-//#endif
-
+import net.minecraft.core.dispenser.BlockSource;
 public class IronIngotDispenserBehavior extends MyFallibleItemDispenserBehavior {
     public IronIngotDispenserBehavior(DispenseItemBehavior oldDispenserBehavior) {
         super(oldDispenserBehavior);
@@ -35,9 +30,9 @@ public class IronIngotDispenserBehavior extends MyFallibleItemDispenserBehavior 
         if (!PluslsCarpetAdditionSettings.dispenserFixIronGolem) {
             return itemStack;
         }
-        BlockPos faceBlockPos = pointer.getPos().relative(pointer.getBlockState().getValue(DispenserBlock.FACING));
+        BlockPos faceBlockPos = pointer.pos().relative(pointer.state().getValue(DispenserBlock.FACING));
 
-        List<IronGolem> ironGolemEntityList = pointer.getLevel().getEntitiesOfClass(IronGolem.class,
+        List<IronGolem> ironGolemEntityList = pointer.level().getEntitiesOfClass(IronGolem.class,
                 new AABB(faceBlockPos), LivingEntity::isAlive);
 
         for (IronGolem ironGolemEntity : ironGolemEntityList) {
@@ -47,9 +42,7 @@ public class IronIngotDispenserBehavior extends MyFallibleItemDispenserBehavior 
                 continue;
             }
             float g = 1.0F + (ironGolemEntity.getRandom().nextFloat() - ironGolemEntity.getRandom().nextFloat()) * 0.2F;
-            //#if MC > 11404
             ironGolemEntity.playSound(SoundEvents.IRON_GOLEM_REPAIR, 1.0F, g);
-            //#endif
             itemStack.shrink(1);
             setSuccess(true);
             return itemStack;

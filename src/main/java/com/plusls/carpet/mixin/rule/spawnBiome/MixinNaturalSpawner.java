@@ -1,139 +1,66 @@
 package com.plusls.carpet.mixin.rule.spawnBiome;
 
 import com.plusls.carpet.PluslsCarpetAdditionSettings;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.random.WeightedList;
+import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.NaturalSpawner;
+import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.biome.MobSpawnSettings;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-//#if MC > 11502
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import net.minecraft.resources.ResourceKey;
-//#endif
-//#if MC > 11701
-//$$ import net.minecraft.core.Holder;
-//$$ import org.jetbrains.annotations.NotNull;
-//#endif
-//#if MC > 11902
-//$$ import net.minecraft.core.HolderGetter;
-//$$ import net.minecraft.core.registries.Registries;
-//$$ import net.minecraft.data.registries.VanillaRegistries;
-//#elseif MC > 11502
-import net.minecraft.data.BuiltinRegistries;
-//#else
-//$$ import net.minecraft.core.BlockPos;
-//$$ import net.minecraft.world.entity.MobCategory;
-//$$ import net.minecraft.world.level.chunk.ChunkGenerator;
-//$$ import org.spongepowered.asm.mixin.injection.Redirect;
-//$$ import java.util.List;
-//#endif
+/**
+ * 26.3 里 {@code NaturalSpawner.mobsAt} 不再接收 Biome，返回 {@code WeightedList}，
+ * 而且群系的刷怪表变成了环境属性 {@code EnvironmentAttributes.NATURAL_MOB_SPAWNS}。
+ * 这里在 {@code mobsAt} 返回处按“全局刷怪群系”重新计算一次刷怪表。
+ */
 @Mixin(NaturalSpawner.class)
 public class MixinNaturalSpawner {
-    //#if MC > 11902
-    //$$ private static final HolderGetter<Biome> pca$lookup = VanillaRegistries.createLookup().asGetterLookup().lookupOrThrow(Registries.BIOME);
-    //#endif
-
-    //#if MC > 11502
-    @ModifyVariable(
+    @Inject(
             method = "mobsAt",
-            at = @At(
-                    value = "HEAD"
-            ),
-            ordinal = 0,
-            argsOnly = true
+            at = @At(value = "RETURN"),
+            cancellable = true
     )
-    //#if MC > 11701
-    //$$ private static Holder<Biome> modifyBiome(Holder<Biome> biome) {
-    //#else
-    private static Biome modifyBiome(Biome biome) {
-    //#endif
-        if (PluslsCarpetAdditionSettings.spawnBiome != PluslsCarpetAdditionSettings.PCA_SPAWN_BIOME.DEFAULT) {
-            if (PluslsCarpetAdditionSettings.spawnBiome == PluslsCarpetAdditionSettings.PCA_SPAWN_BIOME.DESERT) {
-                biome = pca$getBiome(Biomes.DESERT);
-            } else if (PluslsCarpetAdditionSettings.spawnBiome == PluslsCarpetAdditionSettings.PCA_SPAWN_BIOME.PLAINS) {
-                biome = pca$getBiome(Biomes.PLAINS);
-            } else if (PluslsCarpetAdditionSettings.spawnBiome == PluslsCarpetAdditionSettings.PCA_SPAWN_BIOME.THE_END) {
-                biome = pca$getBiome(Biomes.THE_END);
-            } else if (PluslsCarpetAdditionSettings.spawnBiome == PluslsCarpetAdditionSettings.PCA_SPAWN_BIOME.NETHER_WASTES) {
-                biome = pca$getBiome(Biomes.NETHER_WASTES);
-            }
+    private static void pca$replaceSpawnBiome(ServerLevel level,
+                                              StructureManager structureManager,
+                                              ChunkGenerator generator,
+                                              MobCategory category,
+                                              BlockPos pos,
+                                              @NotNull CallbackInfoReturnable<WeightedList<MobSpawnSettings.SpawnerData>> cir) {
+        ResourceKey<Biome> targetBiome = pca$getTargetBiome();
+
+        if (targetBiome == null) {
+            return;
         }
-        return biome;
+
+        Holder<Biome> biome = level.registryAccess()
+                .lookupOrThrow(Registries.BIOME)
+                .getOrThrow(targetBiome);
+        MobSpawnSettings spawnSettings = biome.value().getAttributes()
+                .applyModifier(EnvironmentAttributes.NATURAL_MOB_SPAWNS, MobSpawnSettings.EMPTY);
+        cir.setReturnValue(spawnSettings.getMobsInCategory(category));
     }
 
-    //#if MC > 11701
-    //$$ private static @NotNull Holder<Biome> pca$getBiome(ResourceKey<Biome> biome) {
-    //#elseif MC > 11502
-    private static Biome pca$getBiome(ResourceKey<Biome> biome) {
-    //#else
-    //$$ private static Biome pca$getBiome(Biome biome) {
-    //#endif
-        //#if MC > 11902
-        //$$ return pca$lookup.getOrThrow(biome);
-        //#elseif MC > 11701
-        //$$ return Holder.direct(BuiltinRegistries.BIOME.get(biome));
-        //#elseif MC > 11502
-        return BuiltinRegistries.BIOME.get(biome);
-        //#endif
+    private static @Nullable ResourceKey<Biome> pca$getTargetBiome() {
+        return switch (PluslsCarpetAdditionSettings.spawnBiome) {
+            case DESERT -> Biomes.DESERT;
+            case PLAINS -> Biomes.PLAINS;
+            case THE_END -> Biomes.THE_END;
+            case NETHER_WASTES -> Biomes.NETHER_WASTES;
+            default -> null;
+        };
     }
-    //#else
-    //$$ @Redirect(
-    //$$         method = "getRandomSpawnMobAt",
-    //$$         at = @At(
-    //$$                 value = "INVOKE",
-    //$$                 target = "Lnet/minecraft/world/level/chunk/ChunkGenerator;getMobsAt(Lnet/minecraft/world/entity/MobCategory;Lnet/minecraft/core/BlockPos;)Ljava/util/List;",
-    //$$                 ordinal = 0
-    //$$         )
-    //$$ )
-    //$$ private static List<Biome.SpawnerData> modifyBiome0(ChunkGenerator<?> chunkGenerator, MobCategory category, BlockPos pos) {
-    //$$     return modifyBiome(chunkGenerator, category, pos);
-    //$$ }
-    //$$
-    //$$ @Redirect(
-    //$$         method = "canSpawnMobAt",
-    //$$         at = @At(
-    //$$                 value = "INVOKE",
-    //$$                 target = "Lnet/minecraft/world/level/chunk/ChunkGenerator;getMobsAt(Lnet/minecraft/world/entity/MobCategory;Lnet/minecraft/core/BlockPos;)Ljava/util/List;",
-    //$$                 ordinal = 0
-    //$$         )
-    //$$ )
-    //$$ private static List<Biome.SpawnerData> modifyBiome1(ChunkGenerator<?> chunkGenerator, MobCategory category, BlockPos pos) {
-    //$$     return modifyBiome(chunkGenerator, category, pos);
-    //$$ }
-    //$$
-    //$$ @Redirect(
-    //$$         method = "spawnMobsForChunkGeneration",
-    //$$         at = @At(
-    //$$                 value = "INVOKE",
-    //$$                 target = "Lnet/minecraft/world/level/biome/Biome;getMobs(Lnet/minecraft/world/entity/MobCategory;)Ljava/util/List;",
-    //$$                 ordinal = 0
-    //$$         )
-    //$$ )
-    //$$ private static List<Biome.SpawnerData> modifyBiome2(Biome biome, MobCategory category) {
-    //$$     if (PluslsCarpetAdditionSettings.spawnBiome != PluslsCarpetAdditionSettings.PCA_SPAWN_BIOME.DEFAULT) {
-    //$$         if (PluslsCarpetAdditionSettings.spawnBiome == PluslsCarpetAdditionSettings.PCA_SPAWN_BIOME.DESERT) {
-    //$$             biome = Biomes.DESERT;
-    //$$         } else if (PluslsCarpetAdditionSettings.spawnBiome == PluslsCarpetAdditionSettings.PCA_SPAWN_BIOME.PLAINS) {
-    //$$             biome = Biomes.DESERT;
-    //$$         } else if (PluslsCarpetAdditionSettings.spawnBiome == PluslsCarpetAdditionSettings.PCA_SPAWN_BIOME.THE_END) {
-    //$$             biome = Biomes.THE_END;
-    //$$         } else if (PluslsCarpetAdditionSettings.spawnBiome == PluslsCarpetAdditionSettings.PCA_SPAWN_BIOME.NETHER_WASTES) {
-    //$$             biome = Biomes.NETHER;
-    //$$         }
-    //$$     }
-    //$$     return biome.getMobs(category);
-    //$$ }
-    //$$
-    //$$ private static List<Biome.SpawnerData> modifyBiome(ChunkGenerator<?> chunkGenerator, MobCategory category, BlockPos pos) {
-    //$$     if (PluslsCarpetAdditionSettings.spawnBiome != PluslsCarpetAdditionSettings.PCA_SPAWN_BIOME.DEFAULT) {
-    //$$         if (PluslsCarpetAdditionSettings.spawnBiome == PluslsCarpetAdditionSettings.PCA_SPAWN_BIOME.DESERT) {
-    //$$             return Biomes.DESERT.getMobs(category);
-    //$$         } else if (PluslsCarpetAdditionSettings.spawnBiome == PluslsCarpetAdditionSettings.PCA_SPAWN_BIOME.PLAINS) {
-    //$$             return Biomes.PLAINS.getMobs(category);
-    //$$         }
-    //$$     }
-    //$$     return chunkGenerator.getMobsAt(category, pos);
-    //$$ }
-    //#endif
 }

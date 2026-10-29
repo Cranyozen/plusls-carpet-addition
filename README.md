@@ -18,6 +18,31 @@ This is a [Carpet mod](https://github.com/gnembon/fabric-carpet) extension mod, 
 
 Operation command: `/pca`
 
+> **Minecraft 26.3 (Fabric) port.** This checkout is a single-version port of PCA to **Minecraft 26.3**.
+> Migration report, mixin pitfalls and verification records: [docs/PORT-26.3-方案.md](./docs/PORT-26.3-方案.md).
+
+## Build & run
+
+| Item | Value |
+| --- | --- |
+| Minecraft | 26.3 |
+| Fabric Loader | 0.20.1 |
+| Fabric API | 0.165.0+26.3 |
+| Carpet | 26.3 |
+| MagicLib | v0.8.882-mc26.3 |
+| Java | 25 |
+| Gradle | 9.6.0 (wrapper) |
+
+MC 26.3 ships **unobfuscated**, so the port uses `net.fabricmc.fabric-loom` with remapping disabled:
+no `mappings(...)`, no intermediary, no `modImplementation` / `remapJar` — dependencies are plain `implementation` / `runtimeOnly`.
+
+```bash
+./gradlew build
+# -> build/libs/PluslsCarpetAddition-26.3-0.4.0-26.3.jar
+```
+
+Drop the jar into `mods/` next to Carpet, Fabric API and MagicLib.
+
 ## Dependencies
 
 | Dependency | Link1                                                               | Link2                                              | Link3                                           |
@@ -108,13 +133,31 @@ Use spectral arrow to shoot villager to force restock.
 - Validators:
     - Strict(Case-insensitive)
 ## gravestone
-place gravestone after player dead.
+A player head is placed where the player died; it keeps the whole inventory plus half of the total experience.
+No custom block or item is involved — the gravestone is a vanilla `player_head` carrying extra NBT data.
 - Categories: `Feature`
 - Type: `Boolean`
 - Default value: false
 - Options: `true`, `false`
 - Validators:
     - Strict(Case-insensitive)
+
+### Related rules
+
+| Rule | Default | Meaning |
+| --- | --- | --- |
+| `gravestoneProtectionCount` | `3` | How many explosion / piston hits the gravestone survives. The value is written into the gravestone, so changing the rule does not retro-fit existing ones. |
+| `gravestoneNotifyPosition` | `true` | Send the gravestone coordinates to the dead player in chat. |
+| `gravestoneFluidGraceSeconds` | `300` | How many seconds a gravestone survives while water / lava actually flows into it. `0` = never destroyed by fluids. |
+| `gravestoneFluidGraceReset` | `false` | `false` freezes the countdown once the fluid is gone, `true` resets it to zero. |
+
+### Behaviour
+
+- **Breaking it yourself** — the whole inventory drops, the experience is granted **directly to the player** (no experience-orb entities), and the gravestone itself drops nothing.
+- **Explosions / pistons** — the protection count is consumed first; once exhausted the mod destroys the gravestone itself, dropping the contents but **never** a `player_head` item.
+- **Water / lava** — fluids are kept out of the gravestone block completely. The countdown only advances when a fluid would really flow into it: a source next to it, fluid above it, or a flowing block whose flow vector points at it. Fluid below it and thin `LEVEL 7` edge water do not count.
+- **Expiry** — when the countdown reaches `gravestoneFluidGraceSeconds`, the contents are dropped at the gravestone position (again without a skull item).
+- **Ticking** — the countdown only advances while the chunk is ticking, so it freezes when nobody is around.
 
 ![player_dead.gif](./docs/player_dead.gif)
 ![break_gravestone.gif](./docs/break_gravestone.gif)
@@ -269,31 +312,34 @@ set xaero world name to sync word id to xaerominimap, "#none" is disable.
 - Default value: #none
 - Options: `#none`
 
+## Port status (26.3)
+
+All rules below are registered on a real 26.3 dedicated server and their mixins apply cleanly; the per-feature verification log lives in [docs/PORT-26.3-方案.md](./docs/PORT-26.3-方案.md).
+
+Known limitations:
+
+- `pcaSyncProtocol` compiles and initialises, but the receiving side is an external client mod — not verified end to end.
+- `gravestone`: replacing a gravestone with `/setblock`, `/fill` or `/clone` does not go through the loot hook, so its contents are lost. Player mining, explosions, pistons and other mods replacing the block are handled.
+- `gravestone`: the skull item is intentionally never dropped, and the fluid countdown only advances while the chunk is ticking.
+- `emptyShulkerBoxStack` overlaps with Carpet 26.3's own `stackableShulkers*` mixin on `ItemStack#getMaxStackSize`.
+
 ## Development
 
 ### Support
 
-Current main development for Minecraft version: 1.20.4
+This checkout targets **Minecraft 26.3 (Fabric) only**. The upstream multi-version `preprocess` layout is intentionally not used here — `versions/`, `common.gradle`, `settings.json` and the fabricWrapper scripts are kept for reference only.
 
-And use `preprocess` to be compatible with all versions.
+- Minecraft 26.3
+- Fabric Loader 0.20.1
+- Java 25
+- Gradle 9.6.0
 
-**Note: We only accept the following versions of issues. Please note that this information is time-sensitive and any version of the issue not listed here will be closed**
-
-- Minecraft 1.14.4
-- Minecraft 1.15.2
-- Minecraft 1.16.5
-- Minecraft 1.17.1
-- Minecraft 1.18.2
-- Minecraft 1.19.2 (Ending support soon)
-- Minecraft 1.19.3 (Ending support soon)
-- Minecraft 1.19.4
-- Minecraft 1.20.1 (Ending support soon)
-- Minecraft 1.20.2 (Ending support soon)
-- Minecraft 1.20.4
+Build: `./gradlew build` → `build/libs/PluslsCarpetAddition-26.3-0.4.0-26.3.jar`.
+Porting notes, mixin pitfalls and verification records: [docs/PORT-26.3-方案.md](./docs/PORT-26.3-方案.md).
 
 ### Mappings
 
-We are using the **Mojang official** mappings to de-obfuscate Minecraft and insert patches.
+MC 26.3 no longer ships obfuscated, so this port does **not** use any mappings: Loom runs with remapping disabled and every symbol is the official unobfuscated name. That is also why `modImplementation` / `modCompileOnly` are unavailable — use plain `implementation` / `compileOnly`.
 
 ### Document
 

@@ -16,6 +16,29 @@
 
 这是一个 [Carpet mod](https://github.com/gnembon/fabric-carpet) (fabric-carpet) 的扩展 mod，包含了不少~~NotVanilla的~~有意思的功能以及特性。
 
+> **本仓库是 PCA 的 Minecraft 26.3（Fabric）单版本移植。** 移植报告、mixin 踩坑与验证记录见 [docs/PORT-26.3-方案.md](./docs/PORT-26.3-方案.md)。
+
+## 构建与运行
+
+| 项目 | 版本 |
+| --- | --- |
+| Minecraft | 26.3 |
+| Fabric Loader | 0.20.1 |
+| Fabric API | 0.165.0+26.3 |
+| Carpet | 26.3 |
+| MagicLib | v0.8.882-mc26.3 |
+| Java | 25 |
+| Gradle | 9.6.0（wrapper） |
+
+MC 26.3 本身是**未混淆**版本，因此移植版使用 `net.fabricmc.fabric-loom` 并且关闭了重映射：没有 `mappings(...)`、没有 intermediary、也没有 `modImplementation` / `remapJar`，依赖一律用 `implementation` / `runtimeOnly`。
+
+```bash
+./gradlew build
+# -> build/libs/PluslsCarpetAddition-26.3-0.4.0-26.3.jar
+```
+
+把 jar 和 Carpet、Fabric API、MagicLib 一起放进 `mods/`。
+
 管理命令: `/pca`
 
 ## 依赖
@@ -108,13 +131,30 @@
 - 验证器:
     - 严格(不区分大小写)
 ## 墓碑 (gravestone)
-玩家死亡后会在死亡附近的位置生成墓碑，其中将保留玩家身上的物品以及一半的经验。
+玩家死亡后会在死亡附近的位置生成墓碑，其中保留玩家身上的全部物品以及一半的经验。墓碑不是自定义方块/物品，就是带额外 NBT 的原版 `player_head`。
 - 分类: `特性`
 - 类型: `布尔`
 - 默认值: false
 - 参考值: `true`, `false`
 - 验证器:
     - 严格(不区分大小写)
+
+### 相关规则
+
+| 规则 | 默认值 | 说明 |
+| --- | --- | --- |
+| `gravestoneProtectionCount` | `3` | 墓碑能扛几次爆炸/活塞。数值写在墓碑里，改规则不会影响已经存在的墓碑。 |
+| `gravestoneNotifyPosition` | `true` | 生成墓碑时把坐标发到死亡玩家的聊天栏。 |
+| `gravestoneFluidGraceSeconds` | `300` | 被水/岩浆真正灌进来后还能撑多少秒；`0` = 永不因流体消失。 |
+| `gravestoneFluidGraceReset` | `false` | `false` 流体离开后冻结倒计时，`true` 清零重来。 |
+
+### 行为
+
+- **玩家自己挖**：全部物品掉出，经验**直接进玩家身上**（不生成经验球实体），墓碑本身不掉落任何东西。
+- **爆炸 / 活塞**：先消耗保护次数；次数用尽后由 mod 自己结算并移除方块，内容照掉，但**不会**掉一个 `player_head` 物品。
+- **水 / 岩浆**：流体完全进不了墓碑格。只有在流体真的会灌进来时才推进倒计时——侧面是源方块、正上方有流体、或者流动流体的流向正对墓碑；墓碑正下方的流体和最外层 `LEVEL 7` 薄水不算。
+- **到期**：倒计时到达 `gravestoneFluidGraceSeconds` 后，内容掉在墓碑位置（同样不掉头颅）。
+- **计时前提**：只有区块在 tick 时倒计时才走，没人路过时会冻结。
 
 ![player_dead.gif](./docs/player_dead.gif)
 ![break_gravestone.gif](./docs/break_gravestone.gif)
@@ -269,31 +309,34 @@ EVERYONE：所有人的数据都可以被同步。
 - 默认值: #none
 - 参考值: `#none`
 
+## 移植状态（26.3）
+
+下列规则都已在真实的 26.3 专用服务端上注册通过、mixin 全部应用成功；逐项验证记录见 [docs/PORT-26.3-方案.md](./docs/PORT-26.3-方案.md)。
+
+已知限制：
+
+- `pcaSyncProtocol` 能编译、能初始化，但接收端是外部的客户端 mod，未做端到端验证。
+- `gravestone`：用 `/setblock`、`/fill`、`/clone` 替换墓碑不会走掉落结算，内容会丢失；玩家挖掘、爆炸、活塞以及其它模组替换方块都已覆盖。
+- `gravestone`：故意不掉落头颅物品；流体倒计时只在区块 tick 时推进。
+- `emptyShulkerBoxStack` 与 Carpet 26.3 自带的 `stackableShulkers*` 在 `ItemStack#getMaxStackSize` 上有重叠。
+
 ## 开发
 
 ### 支持
 
-当前主开发版本：1.20.4
+本仓库只针对 **Minecraft 26.3（Fabric）** 维护。上游那套多版本 `预处理` 流程这里不再使用：`versions/`、`common.gradle`、`settings.json` 和 fabricWrapper 脚本仅作参考保留。
 
-并且使用 `预处理` 来兼容各版本。
+- Minecraft 26.3
+- Fabric Loader 0.20.1
+- Java 25
+- Gradle 9.6.0
 
-**注意: 我们仅接受以下版本的议题。请注意该信息的时效性，任何不在此列出的版本议题均会被关闭。**
-
-- Minecraft 1.14.4
-- Minecraft 1.15.2
-- Minecraft 1.16.5
-- Minecraft 1.17.1
-- Minecraft 1.18.2
-- Minecraft 1.19.2 (即将终止支持)
-- Minecraft 1.19.3 (即将终止支持)
-- Minecraft 1.19.4
-- Minecraft 1.20.1 (即将终止支持)
-- Minecraft 1.20.2 (即将终止支持)
-- Minecraft 1.20.4
+构建：`./gradlew build` → `build/libs/PluslsCarpetAddition-26.3-0.4.0-26.3.jar`。
+移植记录、mixin 踩坑与验证过程见 [docs/PORT-26.3-方案.md](./docs/PORT-26.3-方案.md)。
 
 ### 混淆映射表
 
-我们使用 **Mojang 官方** 混淆映射表来反混淆 Minecraft 并插入补丁程序。
+MC 26.3 本身不再混淆，因此本移植版**不使用**任何映射表：Loom 关闭了重映射，所有符号都是官方未混淆名。这也是 `modImplementation` / `modCompileOnly` 在这里不可用的原因——请直接用 `implementation` / `compileOnly`。
 
 ### 文档
 

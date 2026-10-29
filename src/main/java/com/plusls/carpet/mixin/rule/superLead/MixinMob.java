@@ -2,7 +2,6 @@ package com.plusls.carpet.mixin.rule.superLead;
 
 import com.plusls.carpet.PluslsCarpetAdditionSettings;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -19,7 +18,7 @@ public class MixinMob {
             ),
             cancellable = true
     )
-    private void postCanBeLeashed(Player player, CallbackInfoReturnable<Boolean> cir) {
+    private void postCanBeLeashed(CallbackInfoReturnable<Boolean> cir) {
         if (PluslsCarpetAdditionSettings.superLead) {
             cir.setReturnValue(!((Mob) (Object) this).isLeashed());
         }

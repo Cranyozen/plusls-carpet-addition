@@ -5,10 +5,12 @@ import com.plusls.carpet.util.rule.dispenserCollectXp.GlassBottleDispenserBehavi
 import com.plusls.carpet.util.rule.dispenserFixIronGolem.IronIngotDispenserBehavior;
 import com.plusls.carpet.util.rule.flippingTotemOfUndying.FlipCooldown;
 import com.plusls.carpet.util.rule.gravestone.GravestoneUtil;
+import com.plusls.carpet.util.rule.gravestone.PendingGraveLoot;
 import com.plusls.carpet.util.rule.potionRecycle.PotionDispenserBehavior;
 import com.plusls.carpet.util.rule.sleepingDuringTheDay.SleepUtil;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import top.hendrixshen.magiclib.carpet.impl.WrappedSettingManager;
@@ -20,10 +22,9 @@ public class PluslsCarpetAddition implements ModInitializer, DedicatedServerModI
     public void onInitialize() {
         WrappedSettingManager.register(PluslsCarpetAdditionReference.getModIdentifier(),
                 PluslsCarpetAdditionExtension.getSettingsManager(), new PluslsCarpetAdditionExtension());
-        //#if MC > 11502
         GravestoneUtil.init();
+        ServerTickEvents.START_SERVER_TICK.register(server -> PendingGraveLoot.tick());
         SleepUtil.init();
-        //#endif
         IronIngotDispenserBehavior.init();
         GlassBottleDispenserBehavior.init();
         PotionDispenserBehavior.init();

@@ -1,0 +1,6 @@
+accessWidener	v1	official
+
+accessible class net/minecraft/world/level/block/entity/BeehiveBlockEntity$BeeData
+accessible field net/minecraft/world/entity/ExperienceOrb count I
+accessible field net/minecraft/world/level/block/DispenserBlock DISPENSER_REGISTRY Ljava/util/Map;
+accessible method net/minecraft/world/entity/player/Player destroyVanishingCursedItems ()V

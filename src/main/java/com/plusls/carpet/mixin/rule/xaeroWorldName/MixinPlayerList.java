@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
@@ -30,8 +30,8 @@ public class MixinPlayerList {
             return;
         }
 
-        ResourceLocation xaeroworldmap = ResourceLocationCompat.fromNamespaceAndPath("xaeroworldmap", "main");
-        ResourceLocation xaerominimap = ResourceLocationCompat.fromNamespaceAndPath("xaerominimap", "main");
+        Identifier xaeroworldmap = ResourceLocationCompat.fromNamespaceAndPath("xaeroworldmap", "main");
+        Identifier xaerominimap = ResourceLocationCompat.fromNamespaceAndPath("xaerominimap", "main");
 
         CRC32 crc = new CRC32();
         byte[] bytes = PluslsCarpetAdditionSettings.xaeroWorldName.getBytes(StandardCharsets.UTF_8);
@@ -40,9 +40,5 @@ public class MixinPlayerList {
         buf.writeByte(0);
         buf.writeInt((int) crc.getValue());
 
-        //#if MC < 12005
-        ServerPlayNetworking.send(player, xaeroworldmap, new FriendlyByteBuf(buf.duplicate()));
-        ServerPlayNetworking.send(player, xaerominimap, new FriendlyByteBuf(buf.duplicate()));
-        //#endif
     }
 }

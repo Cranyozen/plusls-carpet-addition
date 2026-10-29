@@ -6,29 +6,41 @@
  */
 package com.plusls.carpet;
 
-import lombok.Getter;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import top.hendrixshen.magiclib.api.compat.minecraft.resources.ResourceLocationCompat;
 import top.hendrixshen.magiclib.util.FabricUtil;
 
 public class PluslsCarpetAdditionReference {
-    @Getter
-    private static final String modIdentifier = "@MOD_IDENTIFIER@";
-    @Getter
-    private static final String modName = "@MOD_NAME@";
-    @Getter
-    private static final String modVersion = "@MOD_VERSION@";
-    @Getter
-    private static final Logger logger = LogManager.getLogger(modIdentifier);
+    private static final String MOD_IDENTIFIER = "pca";
+    private static final String MOD_NAME = "Plusls Carpet Addition";
+    private static final Logger LOGGER = LogManager.getLogger(MOD_IDENTIFIER);
     public static final boolean tisCarpetLoaded = FabricUtil.isModLoaded("carpet-tis-addition", ">=1.27.0");
 
+    public static String getModIdentifier() {
+        return MOD_IDENTIFIER;
+    }
+
+    public static String getModName() {
+        return MOD_NAME;
+    }
+
+    public static String getModVersion() {
+        return FabricLoader.getInstance()
+                .getModContainer(MOD_IDENTIFIER)
+                .map(container -> container.getMetadata().getVersion().getFriendlyString())
+                .orElse("dev");
+    }
+
+    public static Logger getLogger() {
+        return LOGGER;
+    }
+
     @Contract(value = "_ -> new", pure = true)
-    public static @NotNull ResourceLocation identifier(String path) {
-        return ResourceLocationCompat.fromNamespaceAndPath(PluslsCarpetAdditionReference.modIdentifier, path);
+    public static @NotNull Identifier identifier(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_IDENTIFIER, path);
     }
 }
