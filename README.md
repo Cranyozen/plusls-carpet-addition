@@ -19,7 +19,6 @@ This is a [Carpet mod](https://github.com/gnembon/fabric-carpet) extension mod, 
 Operation command: `/pca`
 
 > **Minecraft 26.3 (Fabric) port.** This checkout is a single-version port of PCA to **Minecraft 26.3**.
-> Migration report, mixin pitfalls and verification records: [docs/PORT-26.3-方案.md](./docs/PORT-26.3-方案.md).
 
 ## Build & run
 
@@ -314,7 +313,7 @@ set xaero world name to sync word id to xaerominimap, "#none" is disable.
 
 ## Port status (26.3)
 
-All rules below are registered on a real 26.3 dedicated server and their mixins apply cleanly; the per-feature verification log lives in [docs/PORT-26.3-方案.md](./docs/PORT-26.3-方案.md).
+All rules below are registered on a real 26.3 dedicated server and their mixins apply cleanly.
 
 Known limitations:
 
@@ -335,7 +334,6 @@ This checkout targets **Minecraft 26.3 (Fabric) only**. The upstream multi-versi
 - Gradle 9.6.0
 
 Build: `./gradlew build` → `build/libs/PluslsCarpetAddition-26.3-0.4.0-26.3.jar`.
-Porting notes, mixin pitfalls and verification records: [docs/PORT-26.3-方案.md](./docs/PORT-26.3-方案.md).
 
 ### Mappings
 

@@ -16,7 +16,7 @@
 
 这是一个 [Carpet mod](https://github.com/gnembon/fabric-carpet) (fabric-carpet) 的扩展 mod，包含了不少~~NotVanilla的~~有意思的功能以及特性。
 
-> **本仓库是 PCA 的 Minecraft 26.3（Fabric）单版本移植。** 移植报告、mixin 踩坑与验证记录见 [docs/PORT-26.3-方案.md](./docs/PORT-26.3-方案.md)。
+> **本仓库是 PCA 的 Minecraft 26.3（Fabric）单版本移植。**
 
 ## 构建与运行
 
@@ -311,7 +311,7 @@ EVERYONE：所有人的数据都可以被同步。
 
 ## 移植状态（26.3）
 
-下列规则都已在真实的 26.3 专用服务端上注册通过、mixin 全部应用成功；逐项验证记录见 [docs/PORT-26.3-方案.md](./docs/PORT-26.3-方案.md)。
+下列规则都已在真实的 26.3 专用服务端上注册通过、mixin 全部应用成功；
 
 已知限制：
 
@@ -332,7 +332,6 @@ EVERYONE：所有人的数据都可以被同步。
 - Gradle 9.6.0
 
 构建：`./gradlew build` → `build/libs/PluslsCarpetAddition-26.3-0.4.0-26.3.jar`。
-移植记录、mixin 踩坑与验证过程见 [docs/PORT-26.3-方案.md](./docs/PORT-26.3-方案.md)。
 
 ### 混淆映射表
 
